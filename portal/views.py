@@ -1,3 +1,14 @@
+import os
+import zipfile
+from io import BytesIO
+
+from django.http import HttpResponse, Http404
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
+
+from empresas.models import Empresa, UsuarioEmpresa
+from documentos.models import DocumentoFiscal
+
 # -*- coding: utf-8 -*-
 
 from datetime import date
@@ -77,9 +88,9 @@ def dashboard_empresa(request, empresa_id):
         "ano": ano,
         "mes": mes,
         "busca": busca,
-        "nfe_saida": nfe_saida[:10],
-        "nfe_entrada": nfe_entrada[:10],
-        "nfce": nfce[:10],
+        "nfe_saida": nfe_saida[:100],
+        "nfe_entrada": nfe_entrada[:100],
+        "nfce": nfce[:100],
         "total_nfe_saida": total_nfe_saida,
         "total_nfe_entrada": total_nfe_entrada,
         "total_nfce": total_nfce,
@@ -156,3 +167,78 @@ def upload_xml_empresa(request, empresa_id):
         "empresa": empresa,
         "resultados": resultados,
     })
+
+@login_required
+def download_xmls_empresa(request, empresa_id, tipo_documento):
+    empresa = get_object_or_404(Empresa, id=empresa_id, ativo=True)
+
+    # Segurança: usuário só baixa XML de empresa vinculada
+    if not request.user.is_superuser:
+        tem_acesso = UsuarioEmpresa.objects.filter(
+            usuario=request.user,
+            empresa=empresa,
+            ativo=True
+        ).exists()
+
+        if not tem_acesso:
+            raise Http404("Empresa não encontrada.")
+
+    mes = request.GET.get("mes")
+    ano = request.GET.get("ano")
+
+    documentos = DocumentoFiscal.objects.filter(
+        empresa=empresa,
+        tipo_documento=tipo_documento
+    )
+
+    if mes:
+        documentos = documentos.filter(mes=int(mes))
+
+    if ano:
+        documentos = documentos.filter(ano=int(ano))
+
+    documentos = documentos.exclude(arquivo_xml="").order_by("numero")
+
+    if not documentos.exists():
+        return HttpResponse(
+            "Nenhum XML disponível para download neste filtro.",
+            content_type="text/plain; charset=utf-8"
+        )
+
+    memoria = BytesIO()
+
+    with zipfile.ZipFile(memoria, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        total = 0
+
+        for doc in documentos:
+            if not doc.arquivo_xml:
+                continue
+
+            try:
+                caminho = doc.arquivo_xml.path
+
+                if not os.path.exists(caminho):
+                    continue
+
+                nome_xml = f"{doc.chave_acesso or doc.numero}.xml"
+                zip_file.write(caminho, nome_xml)
+                total += 1
+
+            except Exception:
+                continue
+
+    if total == 0:
+        return HttpResponse(
+            "Os registros existem, mas os arquivos XML não foram encontrados na nuvem.",
+            content_type="text/plain; charset=utf-8"
+        )
+
+    memoria.seek(0)
+
+    nome_empresa = empresa.cnpj or empresa.id
+    nome_zip = f"{nome_empresa}_{tipo_documento}_{mes or 'todos'}_{ano or 'todos'}.zip"
+
+    resposta = HttpResponse(memoria.getvalue(), content_type="application/zip")
+    resposta["Content-Disposition"] = f'attachment; filename="{nome_zip}"'
+
+    return resposta

@@ -9,6 +9,11 @@ from . import api
 app_name = "portal"
 
 urlpatterns = [
+    path(
+    "empresa/<int:empresa_id>/download/<str:tipo_documento>/",
+    views.download_xmls_empresa,
+    name="download_xmls_empresa"
+),
     path("", views.home, name="home"),
     path("empresa/<int:empresa_id>/", views.dashboard_empresa, name="dashboard_empresa"),
     path("empresa/<int:empresa_id>/upload-xml/", views.upload_xml_empresa, name="upload_xml_empresa"),
