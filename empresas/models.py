@@ -32,6 +32,12 @@ class Empresa(models.Model):
         verbose_name="Manter XML na nuvem por"
     )
 
+    ultima_limpeza_xml = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Última limpeza automática de XML"
+    )
+
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"

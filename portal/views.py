@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from empresas.models import Empresa, UsuarioEmpresa
 from documentos.models import DocumentoFiscal
 from documentos.leitor_xml import ler_xml_nfe
+from documentos.limpeza_xml import executar_limpeza_automatica_empresa
 
 
 def empresas_do_usuario(usuario):
@@ -60,6 +61,11 @@ def dashboard_empresa(request, empresa_id):
         id=empresa_id,
         ativo=True
     )
+
+    try:
+        executar_limpeza_automatica_empresa(empresa)
+    except Exception:
+        pass
 
     hoje = date.today()
 
@@ -122,6 +128,11 @@ def upload_xml_empresa(request, empresa_id):
         id=empresa_id,
         ativo=True
     )
+
+    try:
+        executar_limpeza_automatica_empresa(empresa)
+    except Exception:
+        pass
 
     resultados = []
 

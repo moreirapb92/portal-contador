@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from empresas.models import Empresa
 from documentos.models import DocumentoFiscal
 from documentos.leitor_xml import ler_xml_nfe
+from documentos.limpeza_xml import executar_limpeza_automatica_empresa
 
 
 def somente_numeros(valor):
@@ -46,6 +47,12 @@ def upload_xml_api(request):
             token_api=token,
             ativo=True
         )
+
+        try:
+            executar_limpeza_automatica_empresa(empresa)
+        except Exception:
+            pass
+
     except Empresa.DoesNotExist:
         return JsonResponse({
             "sucesso": False,
@@ -80,8 +87,6 @@ def upload_xml_api(request):
             }
         )
 
-        # Mantém também o arquivo físico quando o ambiente permitir.
-        # Mas o download principal vai usar xml_conteudo salvo no banco.
         try:
             documento.arquivo_xml.save(
                 arquivo.name,

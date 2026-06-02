@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from calendar import monthrange
-from datetime import date
+from datetime import date, timedelta
 
 from django.utils import timezone
 
@@ -28,8 +28,8 @@ def limpar_xmls_antigos_empresa(empresa):
 
     Regra correta:
     - Não usa data_emissao da nota.
-    - Usa criado_em, ou seja, a data em que o XML foi importado para o portal.
-    - Assim, cliente novo que enviar XML antigo não perde o arquivo imediatamente.
+    - Usa criado_em, que é a data em que o XML foi importado para o portal.
+    - Assim, cliente novo que enviar XML antigo não perde o XML imediatamente.
     """
 
     if not getattr(empresa, "limpar_xml_nuvem", True):
@@ -80,3 +80,41 @@ def limpar_xmls_antigos_empresa(empresa):
         "ignorados": ignorados,
         "data_limite": data_limite,
     }
+
+
+def empresa_precisa_limpeza(empresa, intervalo_dias=7):
+    if not getattr(empresa, "limpar_xml_nuvem", True):
+        return False
+
+    ultima_limpeza = getattr(empresa, "ultima_limpeza_xml", None)
+
+    if not ultima_limpeza:
+        return True
+
+    agora = timezone.now()
+    proxima_limpeza = ultima_limpeza + timedelta(days=intervalo_dias)
+
+    return agora >= proxima_limpeza
+
+
+def executar_limpeza_automatica_empresa(empresa, intervalo_dias=7):
+    """
+    Executa limpeza automática no máximo 1 vez a cada X dias por empresa.
+    Isso evita Cron pago no Render.
+    """
+
+    if not empresa_precisa_limpeza(empresa, intervalo_dias=intervalo_dias):
+        return {
+            "executou": False,
+            "empresa": empresa.razao_social,
+            "apagados": 0,
+            "ignorados": 0,
+        }
+
+    resultado = limpar_xmls_antigos_empresa(empresa)
+
+    empresa.ultima_limpeza_xml = timezone.now()
+    empresa.save(update_fields=["ultima_limpeza_xml"])
+
+    resultado["executou"] = True
+    return resultado
