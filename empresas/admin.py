@@ -176,7 +176,7 @@ class EmpresaAdmin(admin.ModelAdmin):
             usuario=usuario,
             empresa=obj,
             defaults={
-                "perfil": "CONTADOR",
+                "perfil": "contador",
                 "ativo": True,
             }
         )
