@@ -10,7 +10,11 @@ class EmpresaAdmin(admin.ModelAdmin):
     list_display = ("razao_social", "nome_fantasia", "cnpj", "ativo", "criado_em")
     search_fields = ("razao_social", "nome_fantasia", "cnpj")
     list_filter = ("ativo",)
-    readonly_fields = ("token_api", "criado_em")
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("token_api", "criado_em")
+        return ()
 
 
 @admin.register(UsuarioEmpresa)
