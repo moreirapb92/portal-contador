@@ -23,11 +23,21 @@ def subtrair_meses(data_base, meses):
 
 
 def limpar_xmls_antigos_empresa(empresa):
+    """
+    Limpa apenas XMLs antigos da nuvem/banco.
+
+    Regra correta:
+    - Não usa data_emissao da nota.
+    - Usa criado_em, ou seja, a data em que o XML foi importado para o portal.
+    - Assim, cliente novo que enviar XML antigo não perde o arquivo imediatamente.
+    """
+
     if not getattr(empresa, "limpar_xml_nuvem", True):
         return {
             "empresa": empresa.razao_social,
             "apagados": 0,
             "ignorados": 0,
+            "data_limite": None,
         }
 
     meses = int(getattr(empresa, "meses_retencao_xml", 3) or 3)
@@ -37,7 +47,7 @@ def limpar_xmls_antigos_empresa(empresa):
 
     documentos = DocumentoFiscal.objects.filter(
         empresa=empresa,
-        data_emissao__lt=data_limite,
+        criado_em__date__lt=data_limite,
     )
 
     apagados = 0
@@ -68,4 +78,5 @@ def limpar_xmls_antigos_empresa(empresa):
         "empresa": empresa.razao_social,
         "apagados": apagados,
         "ignorados": ignorados,
+        "data_limite": data_limite,
     }
