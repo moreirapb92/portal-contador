@@ -18,6 +18,20 @@ class Empresa(models.Model):
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
+    limpar_xml_nuvem = models.BooleanField(
+        default=True,
+        verbose_name="Apagar XML antigo da nuvem"
+    )
+
+    meses_retencao_xml = models.PositiveSmallIntegerField(
+        default=3,
+        choices=(
+            (2, "2 meses"),
+            (3, "3 meses"),
+        ),
+        verbose_name="Manter XML na nuvem por"
+    )
+
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
