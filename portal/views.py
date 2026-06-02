@@ -1,4 +1,4 @@
-import os
+﻿import os
 import zipfile
 from io import BytesIO
 
@@ -149,7 +149,7 @@ def upload_xml_empresa(request, empresa_id):
 
                 resultados.append({
                     "status": "ok",
-                    "mensagem": "XML importado com sucesso." if criado else "XML já existia e foi atualizado.",
+                    "mensagem": "XML importado com sucesso." if criado else "XML jÃ¡ existia e foi atualizado.",
                     "arquivo": arquivo.name,
                     "chave": dados["chave_acesso"],
                     "numero": dados["numero"],
@@ -172,7 +172,7 @@ def upload_xml_empresa(request, empresa_id):
 def download_xmls_empresa(request, empresa_id, tipo_documento):
     empresa = get_object_or_404(Empresa, id=empresa_id, ativo=True)
 
-    # Segurança: usuário só baixa XML de empresa vinculada
+    # SeguranÃ§a: usuÃ¡rio sÃ³ baixa XML de empresa vinculada
     if not request.user.is_superuser:
         tem_acesso = UsuarioEmpresa.objects.filter(
             usuario=request.user,
@@ -181,7 +181,7 @@ def download_xmls_empresa(request, empresa_id, tipo_documento):
         ).exists()
 
         if not tem_acesso:
-            raise Http404("Empresa não encontrada.")
+            raise Http404("Empresa nÃ£o encontrada.")
 
     mes = request.GET.get("mes")
     ano = request.GET.get("ano")
@@ -201,7 +201,7 @@ def download_xmls_empresa(request, empresa_id, tipo_documento):
 
     if not documentos.exists():
         return HttpResponse(
-            "Nenhum XML disponível para download neste filtro.",
+            "Nenhum XML disponÃ­vel para download neste filtro.",
             content_type="text/plain; charset=utf-8"
         )
 
@@ -229,7 +229,7 @@ def download_xmls_empresa(request, empresa_id, tipo_documento):
 
     if total == 0:
         return HttpResponse(
-            "Os registros existem, mas os arquivos XML não foram encontrados na nuvem.",
+            "Os registros existem, mas os arquivos XML nÃ£o foram encontrados na nuvem.",
             content_type="text/plain; charset=utf-8"
         )
 
