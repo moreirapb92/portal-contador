@@ -66,6 +66,7 @@
         cursor: pointer;
         font-size: 14px;
         color: #ffffff;
+        margin: 2px;
     }
 
     .btn-primary {
@@ -171,6 +172,20 @@
     .mensagem-vazia {
         color: #111827;
         background: #f5f5f5;
+    }
+
+    .paginacao {
+        margin-top: 14px;
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .paginacao-info {
+        font-size: 13px;
+        color: #374151;
+        margin-top: 8px;
     }
 
     @media (max-width: 900px) {
@@ -303,7 +318,7 @@
                         <td>{{ documento.serie }}</td>
                         <td>{{ documento.natureza }}</td>
                         <td>{{ documento.chave_acesso }}</td>
-                        <td class="situacao-ok">{{ documento.situacao|default:"Concluído" }}</td>
+                        <td class="situacao-ok">{{ documento.situacao|default:"CONCLUIDO" }}</td>
                         <td>{{ documento.data_emissao|date:"j \\d\\e F \\d\\e Y" }}</td>
                         <td class="valor">R$ {{ documento.valor_total|floatformat:2 }}</td>
                     </tr>
@@ -317,6 +332,30 @@
             </tbody>
         </table>
     </div>
+
+    {% if nfe_saida.has_other_pages %}
+        <div class="paginacao">
+            {% if nfe_saida.has_previous %}
+                <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_saida={{ nfe_saida.previous_page_number }}">Anterior</a>
+            {% endif %}
+
+            {% for p in nfe_saida.paginator.page_range %}
+                {% if p == nfe_saida.number %}
+                    <a class="btn btn-dark" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_saida={{ p }}">{{ p }}</a>
+                {% else %}
+                    <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_saida={{ p }}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if nfe_saida.has_next %}
+                <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_saida={{ nfe_saida.next_page_number }}">Próxima</a>
+            {% endif %}
+        </div>
+
+        <div class="paginacao-info">
+            Página {{ nfe_saida.number }} de {{ nfe_saida.paginator.num_pages }}
+        </div>
+    {% endif %}
 </div>
 
 <div class="secao-doc">
@@ -347,7 +386,7 @@
                         <td>{{ documento.serie }}</td>
                         <td>{{ documento.natureza }}</td>
                         <td>{{ documento.chave_acesso }}</td>
-                        <td class="situacao-ok">{{ documento.situacao|default:"Concluído" }}</td>
+                        <td class="situacao-ok">{{ documento.situacao|default:"CONCLUIDO" }}</td>
                         <td>{{ documento.data_emissao|date:"j \\d\\e F \\d\\e Y" }}</td>
                         <td class="valor">R$ {{ documento.valor_total|floatformat:2 }}</td>
                     </tr>
@@ -361,6 +400,30 @@
             </tbody>
         </table>
     </div>
+
+    {% if nfe_entrada.has_other_pages %}
+        <div class="paginacao">
+            {% if nfe_entrada.has_previous %}
+                <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_entrada={{ nfe_entrada.previous_page_number }}">Anterior</a>
+            {% endif %}
+
+            {% for p in nfe_entrada.paginator.page_range %}
+                {% if p == nfe_entrada.number %}
+                    <a class="btn btn-dark" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_entrada={{ p }}">{{ p }}</a>
+                {% else %}
+                    <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_entrada={{ p }}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if nfe_entrada.has_next %}
+                <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_entrada={{ nfe_entrada.next_page_number }}">Próxima</a>
+            {% endif %}
+        </div>
+
+        <div class="paginacao-info">
+            Página {{ nfe_entrada.number }} de {{ nfe_entrada.paginator.num_pages }}
+        </div>
+    {% endif %}
 </div>
 
 <div class="secao-doc">
@@ -391,7 +454,7 @@
                         <td>{{ documento.serie }}</td>
                         <td>{{ documento.natureza }}</td>
                         <td>{{ documento.chave_acesso }}</td>
-                        <td class="situacao-ok">{{ documento.situacao|default:"Concluído" }}</td>
+                        <td class="situacao-ok">{{ documento.situacao|default:"CONCLUIDO" }}</td>
                         <td>{{ documento.data_emissao|date:"j \\d\\e F \\d\\e Y" }}</td>
                         <td class="valor">R$ {{ documento.valor_total|floatformat:2 }}</td>
                     </tr>
@@ -405,6 +468,30 @@
             </tbody>
         </table>
     </div>
+
+    {% if nfce.has_other_pages %}
+        <div class="paginacao">
+            {% if nfce.has_previous %}
+                <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_nfce={{ nfce.previous_page_number }}">Anterior</a>
+            {% endif %}
+
+            {% for p in nfce.paginator.page_range %}
+                {% if p == nfce.number %}
+                    <a class="btn btn-dark" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_nfce={{ p }}">{{ p }}</a>
+                {% else %}
+                    <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_nfce={{ p }}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if nfce.has_next %}
+                <a class="btn btn-primary" href="?mes={{ mes }}&ano={{ ano }}&q={{ busca }}&page_nfce={{ nfce.next_page_number }}">Próxima</a>
+            {% endif %}
+        </div>
+
+        <div class="paginacao-info">
+            Página {{ nfce.number }} de {{ nfce.paginator.num_pages }}
+        </div>
+    {% endif %}
 </div>
 
 {% endblock %}

@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from empresas.models import Empresa, UsuarioEmpresa
@@ -28,7 +28,8 @@ def empresas_do_usuario(usuario):
     ).select_related("empresa")
 
     return Empresa.objects.filter(
-        id__in=[v.empresa_id for v in vinculos]
+        id__in=[v.empresa_id for v in vinculos],
+        ativo=True
     )
 
 
@@ -45,7 +46,7 @@ def home(request):
 
 
 def paginar_documentos(request, queryset, parametro):
-    paginator = Paginator(queryset.order_by("numero"), 50)
+    paginator = Paginator(queryset.order_by("numero"), 25)
     numero_pagina = request.GET.get(parametro)
     return paginator.get_page(numero_pagina)
 
@@ -56,7 +57,8 @@ def dashboard_empresa(request, empresa_id):
 
     empresa = get_object_or_404(
         empresas_permitidas,
-        id=empresa_id
+        id=empresa_id,
+        ativo=True
     )
 
     hoje = date.today()
@@ -117,7 +119,8 @@ def upload_xml_empresa(request, empresa_id):
 
     empresa = get_object_or_404(
         empresas_permitidas,
-        id=empresa_id
+        id=empresa_id,
+        ativo=True
     )
 
     resultados = []
@@ -157,9 +160,17 @@ def upload_xml_empresa(request, empresa_id):
                         "mes": dados["mes"],
                         "ano": dados["ano"],
                         "xml_conteudo": xml_texto,
-                        "arquivo_xml": ContentFile(conteudo, name=arquivo.name),
                     }
                 )
+
+                try:
+                    documento.arquivo_xml.save(
+                        arquivo.name,
+                        ContentFile(conteudo),
+                        save=True
+                    )
+                except Exception:
+                    pass
 
                 resultados.append({
                     "status": "ok",
