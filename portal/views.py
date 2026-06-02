@@ -1,20 +1,15 @@
-﻿import os
+﻿# -*- coding: utf-8 -*-
+
+import os
 import zipfile
+from datetime import date
 from io import BytesIO
 
-from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404
-
-from empresas.models import Empresa, UsuarioEmpresa
-from documentos.models import DocumentoFiscal
-
-# -*- coding: utf-8 -*-
-
-from datetime import date
-
-from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
+from django.core.paginator import Paginator
 from django.db.models import Q
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from empresas.models import Empresa, UsuarioEmpresa
@@ -49,6 +44,12 @@ def home(request):
     })
 
 
+def paginar_documentos(request, queryset, parametro):
+    paginator = Paginator(queryset.order_by("numero"), 50)
+    numero_pagina = request.GET.get(parametro)
+    return paginator.get_page(numero_pagina)
+
+
 @login_required
 def dashboard_empresa(request, empresa_id):
     empresas_permitidas = empresas_do_usuario(request.user)
@@ -59,8 +60,17 @@ def dashboard_empresa(request, empresa_id):
     )
 
     hoje = date.today()
-    ano = int(request.GET.get("ano", hoje.year))
-    mes = int(request.GET.get("mes", hoje.month))
+
+    try:
+        ano = int(request.GET.get("ano", hoje.year))
+    except Exception:
+        ano = hoje.year
+
+    try:
+        mes = int(request.GET.get("mes", hoje.month))
+    except Exception:
+        mes = hoje.month
+
     busca = request.GET.get("q", "").strip()
 
     documentos = DocumentoFiscal.objects.filter(
@@ -83,14 +93,18 @@ def dashboard_empresa(request, empresa_id):
     total_nfe_entrada = sum([d.valor_total for d in nfe_entrada])
     total_nfce = sum([d.valor_total for d in nfce])
 
+    nfe_saida_pagina = paginar_documentos(request, nfe_saida, "page_saida")
+    nfe_entrada_pagina = paginar_documentos(request, nfe_entrada, "page_entrada")
+    nfce_pagina = paginar_documentos(request, nfce, "page_nfce")
+
     return render(request, "portal/dashboard_empresa.html", {
         "empresa": empresa,
         "ano": ano,
         "mes": mes,
         "busca": busca,
-        "nfe_saida": nfe_saida[:100],
-        "nfe_entrada": nfe_entrada[:100],
-        "nfce": nfce[:100],
+        "nfe_saida": nfe_saida_pagina,
+        "nfe_entrada": nfe_entrada_pagina,
+        "nfce": nfce_pagina,
         "total_nfe_saida": total_nfe_saida,
         "total_nfe_entrada": total_nfe_entrada,
         "total_nfce": total_nfce,
@@ -120,6 +134,7 @@ def upload_xml_empresa(request, empresa_id):
         for arquivo in arquivos:
             try:
                 conteudo = arquivo.read()
+                xml_texto = conteudo.decode("utf-8", errors="replace")
 
                 dados = ler_xml_nfe(
                     conteudo_xml=conteudo,
@@ -141,15 +156,14 @@ def upload_xml_empresa(request, empresa_id):
                         "destinatario_cnpj": dados["destinatario_cnpj"],
                         "mes": dados["mes"],
                         "ano": dados["ano"],
+                        "xml_conteudo": xml_texto,
+                        "arquivo_xml": ContentFile(conteudo, name=arquivo.name),
                     }
                 )
 
-                arquivo.seek(0)
-                documento.arquivo_xml.save(arquivo.name, arquivo, save=True)
-
                 resultados.append({
                     "status": "ok",
-                    "mensagem": "XML importado com sucesso." if criado else "XML jÃ¡ existia e foi atualizado.",
+                    "mensagem": "XML importado com sucesso." if criado else "XML já existia e foi atualizado.",
                     "arquivo": arquivo.name,
                     "chave": dados["chave_acesso"],
                     "numero": dados["numero"],
@@ -168,20 +182,16 @@ def upload_xml_empresa(request, empresa_id):
         "resultados": resultados,
     })
 
+
 @login_required
 def download_xmls_empresa(request, empresa_id, tipo_documento):
-    empresa = get_object_or_404(Empresa, id=empresa_id, ativo=True)
+    empresas_permitidas = empresas_do_usuario(request.user)
 
-    # SeguranÃ§a: usuÃ¡rio sÃ³ baixa XML de empresa vinculada
-    if not request.user.is_superuser:
-        tem_acesso = UsuarioEmpresa.objects.filter(
-            usuario=request.user,
-            empresa=empresa,
-            ativo=True
-        ).exists()
-
-        if not tem_acesso:
-            raise Http404("Empresa nÃ£o encontrada.")
+    empresa = get_object_or_404(
+        empresas_permitidas,
+        id=empresa_id,
+        ativo=True
+    )
 
     mes = request.GET.get("mes")
     ano = request.GET.get("ano")
@@ -197,46 +207,48 @@ def download_xmls_empresa(request, empresa_id, tipo_documento):
     if ano:
         documentos = documentos.filter(ano=int(ano))
 
-    documentos = documentos.exclude(arquivo_xml="").order_by("numero")
+    documentos = documentos.order_by("numero")
 
     if not documentos.exists():
         return HttpResponse(
-            "Nenhum XML disponÃ­vel para download neste filtro.",
+            "Nenhum XML disponível para download neste filtro.",
             content_type="text/plain; charset=utf-8"
         )
 
     memoria = BytesIO()
+    total = 0
 
     with zipfile.ZipFile(memoria, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        total = 0
-
         for doc in documentos:
-            if not doc.arquivo_xml:
-                continue
-
             try:
-                caminho = doc.arquivo_xml.path
+                nome_xml = f"{doc.chave_acesso or doc.numero}.xml"
 
-                if not os.path.exists(caminho):
+                xml_conteudo = getattr(doc, "xml_conteudo", "")
+
+                if xml_conteudo:
+                    zip_file.writestr(nome_xml, xml_conteudo.encode("utf-8"))
+                    total += 1
                     continue
 
-                nome_xml = f"{doc.chave_acesso or doc.numero}.xml"
-                zip_file.write(caminho, nome_xml)
-                total += 1
+                if doc.arquivo_xml:
+                    caminho = doc.arquivo_xml.path
+
+                    if os.path.exists(caminho):
+                        zip_file.write(caminho, nome_xml)
+                        total += 1
 
             except Exception:
                 continue
 
     if total == 0:
         return HttpResponse(
-            "Os registros existem, mas os arquivos XML nÃ£o foram encontrados na nuvem.",
+            "Os registros existem, mas os XMLs ainda não foram reenviados para o banco novo.",
             content_type="text/plain; charset=utf-8"
         )
 
     memoria.seek(0)
 
-    nome_empresa = empresa.cnpj or empresa.id
-    nome_zip = f"{nome_empresa}_{tipo_documento}_{mes or 'todos'}_{ano or 'todos'}.zip"
+    nome_zip = f"{empresa.cnpj}_{tipo_documento}_{mes or 'todos'}_{ano or 'todos'}.zip"
 
     resposta = HttpResponse(memoria.getvalue(), content_type="application/zip")
     resposta["Content-Disposition"] = f'attachment; filename="{nome_zip}"'

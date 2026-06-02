@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -53,6 +54,7 @@ def upload_xml_api(request):
 
     try:
         conteudo = arquivo.read()
+        xml_texto = conteudo.decode("utf-8", errors="replace")
 
         dados = ler_xml_nfe(
             conteudo_xml=conteudo,
@@ -74,11 +76,20 @@ def upload_xml_api(request):
                 "destinatario_cnpj": dados["destinatario_cnpj"],
                 "mes": dados["mes"],
                 "ano": dados["ano"],
+                "xml_conteudo": xml_texto,
             }
         )
 
-        arquivo.seek(0)
-        documento.arquivo_xml.save(arquivo.name, arquivo, save=True)
+        # Mantém também o arquivo físico quando o ambiente permitir.
+        # Mas o download principal vai usar xml_conteudo salvo no banco.
+        try:
+            documento.arquivo_xml.save(
+                arquivo.name,
+                ContentFile(conteudo),
+                save=True
+            )
+        except Exception:
+            pass
 
         return JsonResponse({
             "sucesso": True,
