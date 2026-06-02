@@ -1,0 +1,37 @@
+﻿{% extends "portal/base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Selecione uma empresa</h2>
+    <p>Você pode acessar todas as empresas vinculadas ao seu usuário.</p>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Empresa</th>
+                <th>CNPJ</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for empresa in empresas %}
+                <tr>
+                    <td>{{ empresa.nome_fantasia|default:empresa.razao_social }}</td>
+                    <td>{{ empresa.cnpj }}</td>
+                    <td>
+                        <a class="btn" href="{% url 'portal:dashboard_empresa' empresa.id %}">
+                            Acessar
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">Nenhuma empresa vinculada ao seu usuário.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

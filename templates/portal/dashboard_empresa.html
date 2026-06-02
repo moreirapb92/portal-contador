@@ -1,0 +1,180 @@
+﻿{% extends "portal/base.html" %}
+
+{% block content %}
+<div class="summary">
+    <table>
+        <tr>
+            <th>Modelo</th>
+            <th>Total concluído</th>
+        </tr>
+        <tr>
+            <td>NF-e Saída</td>
+            <td>R$ {{ total_nfe_saida }}</td>
+        </tr>
+        <tr>
+            <td>NF-e Entrada</td>
+            <td>R$ {{ total_nfe_entrada }}</td>
+        </tr>
+        <tr>
+            <td>NFC-e</td>
+            <td>R$ {{ total_nfce }}</td>
+        </tr>
+    </table>
+</div>
+
+<h1>Administrativo</h1>
+
+<p>
+    Documentos referente ao período de
+    <strong>{{ mes }}/{{ ano }}</strong>
+</p>
+
+<div class="card">
+    <form method="get" class="filters">
+        <div>
+            <label>Mês</label><br>
+            <select name="mes">
+                <option value="1" {% if mes == 1 %}selected{% endif %}>1</option>
+                <option value="2" {% if mes == 2 %}selected{% endif %}>2</option>
+                <option value="3" {% if mes == 3 %}selected{% endif %}>3</option>
+                <option value="4" {% if mes == 4 %}selected{% endif %}>4</option>
+                <option value="5" {% if mes == 5 %}selected{% endif %}>5</option>
+                <option value="6" {% if mes == 6 %}selected{% endif %}>6</option>
+                <option value="7" {% if mes == 7 %}selected{% endif %}>7</option>
+                <option value="8" {% if mes == 8 %}selected{% endif %}>8</option>
+                <option value="9" {% if mes == 9 %}selected{% endif %}>9</option>
+                <option value="10" {% if mes == 10 %}selected{% endif %}>10</option>
+                <option value="11" {% if mes == 11 %}selected{% endif %}>11</option>
+                <option value="12" {% if mes == 12 %}selected{% endif %}>12</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Ano</label><br>
+            <input type="number" name="ano" value="{{ ano }}">
+        </div>
+
+        <div>
+            <label>Pesquisar por número ou chave de acesso</label><br>
+            <input type="text" name="q" value="{{ busca }}" style="width: 330px;">
+        </div>
+
+        <button class="btn" type="submit">Pesquisar</button>
+    </form>
+</div>
+
+<div class="card">
+    <a class="btn" href="#">Documentos Compactados</a>
+    <a class="btn btn-green" href="#">Downloads Pendentes</a>
+    <a class="btn" href="#">Download Completo</a>
+</div>
+
+<div class="card">
+    <h2 class="section-title">NF-e Saída</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Série</th>
+                <th>Natureza</th>
+                <th>Chave de Acesso</th>
+                <th>Situação</th>
+                <th>Emitido</th>
+                <th>Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in nfe_saida %}
+                <tr>
+                    <td>{{ doc.numero }}</td>
+                    <td>{{ doc.serie }}</td>
+                    <td>{{ doc.natureza }}</td>
+                    <td>{{ doc.chave_acesso }}</td>
+                    <td>{{ doc.get_situacao_display }}</td>
+                    <td>{{ doc.data_emissao }}</td>
+                    <td>R$ {{ doc.valor_total }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7">Nenhum documento para o filtro selecionado.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2 class="section-title">NF-e Entrada</h2>
+    <a class="btn btn-dark" href="#">Download</a>
+    <br><br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Série</th>
+                <th>Natureza</th>
+                <th>Chave de Acesso</th>
+                <th>Situação</th>
+                <th>Emitido</th>
+                <th>Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in nfe_entrada %}
+                <tr>
+                    <td>{{ doc.numero }}</td>
+                    <td>{{ doc.serie }}</td>
+                    <td>{{ doc.natureza }}</td>
+                    <td>{{ doc.chave_acesso }}</td>
+                    <td>{{ doc.get_situacao_display }}</td>
+                    <td>{{ doc.data_emissao }}</td>
+                    <td>R$ {{ doc.valor_total }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7">Nenhum documento para o filtro selecionado.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2 class="section-title">NFC-e</h2>
+    <a class="btn btn-dark" href="#">Download</a>
+    <br><br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Série</th>
+                <th>Natureza</th>
+                <th>Chave de Acesso</th>
+                <th>Situação</th>
+                <th>Emitido</th>
+                <th>Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in nfce %}
+                <tr>
+                    <td>{{ doc.numero }}</td>
+                    <td>{{ doc.serie }}</td>
+                    <td>{{ doc.natureza }}</td>
+                    <td>{{ doc.chave_acesso }}</td>
+                    <td>{{ doc.get_situacao_display }}</td>
+                    <td>{{ doc.data_emissao }}</td>
+                    <td>R$ {{ doc.valor_total }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7">Nenhum documento para o filtro selecionado.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

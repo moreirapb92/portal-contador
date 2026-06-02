@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal do Contador</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 250px;
+            background: #001f3f;
+            color: white;
+        }
+
+        .brand {
+            padding: 18px;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .empresa-box {
+            padding: 18px;
+            background: #062b52;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 13px 20px;
+            color: #dcecff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .menu a:hover {
+            background: #074780;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 25px;
+        }
+
+        .topbar {
+            background: white;
+            padding: 18px 25px;
+            margin: -25px -25px 25px -25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card {
+            background: white;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 4px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 9px 14px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: 0;
+            cursor: pointer;
+        }
+
+        .btn-green {
+            background: #28a745;
+        }
+
+        .btn-dark {
+            background: #343a40;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8f9fa;
+            text-align: left;
+        }
+
+        input, select {
+            padding: 9px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .summary {
+            float: right;
+            min-width: 280px;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .section-title {
+            margin: 0 0 12px 0;
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand">
+            Portal do Contador
+        </div>
+
+        {% if empresa %}
+            <div class="empresa-box">
+                <strong>{{ empresa.nome_fantasia|default:empresa.razao_social }}</strong><br>
+                {{ empresa.cnpj }}
+            </div>
+        {% endif %}
+
+        <nav class="menu">
+            <a href="{% url 'portal:home' %}">Página inicial</a>
+            <a href="#">NF-e Saída</a>
+            <a href="#">NF-e Entrada</a>
+            <a href="#">NFC-e</a>
+            <a href="#">NFS-e</a>
+            <a href="#">CT-e</a>
+            <a href="#">MDF-e</a>
+            <a href="#">SPED Fiscal</a>
+            <a href="#">Sintegra</a>
+            <a href="#">Relatórios</a>
+            <a href="#">Arquivos Contábeis</a>
+            <a href="{% url 'logout' %}">Sair</a>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <div class="topbar">
+            <div>
+                <strong>Administrativo</strong>
+            </div>
+            <div>
+                Usuário: {{ request.user.email|default:request.user.username }}
+            </div>
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

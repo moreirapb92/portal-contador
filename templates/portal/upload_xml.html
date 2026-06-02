@@ -1,0 +1,67 @@
+{% extends "portal/base.html" %}
+
+{% block content %}
+<h1>Upload de XML</h1>
+
+<p>
+    Empresa:
+    <strong>{{ empresa.nome_fantasia|default:empresa.razao_social }}</strong>
+    -
+    {{ empresa.cnpj }}
+</p>
+
+<div class="card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <label>Selecione um ou vários XMLs:</label><br><br>
+
+        <input type="file" name="arquivos" accept=".xml" multiple>
+
+        <br><br>
+
+        <button class="btn" type="submit">Enviar XMLs</button>
+
+        <a class="btn btn-dark" href="{% url 'portal:dashboard_empresa' empresa.id %}">
+            Voltar
+        </a>
+    </form>
+</div>
+
+{% if resultados %}
+<div class="card">
+    <h2>Resultado da importação</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Arquivo</th>
+                <th>Tipo</th>
+                <th>Número</th>
+                <th>Chave</th>
+                <th>Mensagem</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in resultados %}
+                <tr>
+                    <td>
+                        {% if r.status == "ok" %}
+                            ✅ OK
+                        {% else %}
+                            ❌ Erro
+                        {% endif %}
+                    </td>
+                    <td>{{ r.arquivo }}</td>
+                    <td>{{ r.tipo }}</td>
+                    <td>{{ r.numero }}</td>
+                    <td>{{ r.chave }}</td>
+                    <td>{{ r.mensagem }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

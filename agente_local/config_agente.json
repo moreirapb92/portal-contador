@@ -1,0 +1,20 @@
+{
+    "api_url": "http://127.0.0.1:8000/api/upload-xml/",
+    "cnpj": "611900000133",
+    "token": "804ed0c6-9081-4776-8bfb-3a91c5f400c1",
+    "pastas_xml": [
+        "C:/TSD/Host/XML_NFCe"
+    ],
+    "enviar_subpastas": true,
+    "extensoes": [
+        ".xml"
+    ],
+    "timeout": 60,
+    "limite_por_execucao": 100,
+    "ignorar_arquivos_com": [
+        "procInutNFe",
+        "procEventoNFe",
+        "evento",
+        "retInutNFe"
+    ]
+}

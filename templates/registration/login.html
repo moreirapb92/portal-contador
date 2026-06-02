@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal do Contador - Login</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #062b52, #0074d9);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .area {
+            width: 390px;
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 34px;
+            font-weight: bold;
+            line-height: 1.05;
+            margin-bottom: 28px;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            display: block;
+            font-size: 18px;
+            opacity: 0.75;
+            letter-spacing: 5px;
+            margin-top: 6px;
+        }
+
+        .box {
+            background: white;
+            padding: 28px;
+            border-radius: 6px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.25);
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 13px;
+            border: 1px solid #cfd8e3;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn-area {
+            text-align: center;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: 0;
+            padding: 11px 42px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .erro {
+            color: #c0392b;
+            font-size: 14px;
+            margin-bottom: 12px;
+            border: 1px solid #f1b0b7;
+            background: #fff5f5;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .rodape {
+            color: white;
+            text-align: center;
+            margin-top: 18px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="area">
+        <div class="logo">
+            PORTAL DO<br>CONTADOR
+            <span>DIGITAL</span>
+        </div>
+
+        <div class="box">
+            {% if form.errors %}
+                <div class="erro">Usuário ou senha inválidos.</div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <label>Usuário:</label>
+                {{ form.username }}
+
+                <label>Senha:</label>
+                {{ form.password }}
+
+                <div class="btn-area">
+                    <button type="submit">Acessar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="rodape">
+            Sistema em desenvolvimento
+        </div>
+    </div>
+</body>
+</html>
