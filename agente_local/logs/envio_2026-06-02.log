@@ -611,3 +611,27 @@
 [2026-06-02 09:41:12] Serão enviados agora: 0
 [2026-06-02 09:41:12] Nenhum XML novo para enviar.
 [2026-06-02 09:41:12] ============================================================
+[2026-06-02 15:12:03] ============================================================
+[2026-06-02 15:12:03] Iniciando envio de XMLs
+[2026-06-02 15:12:03] BASE_DIR: C:\Users\NONATO\Documents\portalcontador\agente_local
+[2026-06-02 15:12:03] Config usado: C:\Users\NONATO\Documents\portalcontador\agente_local\config_agente.json
+[2026-06-02 15:12:03] XMLs válidos encontrados: 1274
+[2026-06-02 15:12:03] Ignorados por tipo de arquivo: 6
+[2026-06-02 15:12:03] Já enviados anteriormente: 1274
+[2026-06-02 15:12:03] Pendentes para envio: 0
+[2026-06-02 15:12:03] Limite por execução: 100
+[2026-06-02 15:12:03] Serão enviados agora: 0
+[2026-06-02 15:12:03] Nenhum XML novo para enviar.
+[2026-06-02 15:12:03] ============================================================
+[2026-06-02 15:21:57] ============================================================
+[2026-06-02 15:21:57] Iniciando envio de XMLs
+[2026-06-02 15:21:57] BASE_DIR: C:\Users\NONATO\Documents\portalcontador\agente_local
+[2026-06-02 15:21:57] Config usado: C:\Users\NONATO\Documents\portalcontador\agente_local\config_agente.json
+[2026-06-02 15:21:57] XMLs válidos encontrados: 1274
+[2026-06-02 15:21:57] Ignorados por tipo de arquivo: 6
+[2026-06-02 15:21:57] Já enviados anteriormente: 1274
+[2026-06-02 15:21:57] Pendentes para envio: 0
+[2026-06-02 15:21:57] Limite por execução: 100
+[2026-06-02 15:21:57] Serão enviados agora: 0
+[2026-06-02 15:21:57] Nenhum XML novo para enviar.
+[2026-06-02 15:21:57] ============================================================
