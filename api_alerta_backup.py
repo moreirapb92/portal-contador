@@ -1,9 +1,11 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 import json
 import os
+import traceback
 from datetime import datetime
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -11,39 +13,59 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def alerta_backup(request):
-    if request.method != "POST":
-        return JsonResponse({"ok": False, "erro": "Método não permitido."}, status=405)
-
     try:
-        dados = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        return JsonResponse({"ok": False, "erro": "JSON inválido."}, status=400)
+        if request.method != "POST":
+            return JsonResponse({
+                "ok": False,
+                "erro": "Metodo nao permitido."
+            }, status=405)
 
-    token_recebido = dados.get("token", "")
-    token_correto = os.getenv("BACKUP_ALERT_TOKEN", "")
+        try:
+            dados = json.loads(request.body.decode("utf-8"))
+        except Exception as erro_json:
+            return JsonResponse({
+                "ok": False,
+                "erro": "JSON invalido.",
+                "detalhe": str(erro_json)
+            }, status=400)
 
-    if not token_correto or token_recebido != token_correto:
-        return JsonResponse({"ok": False, "erro": "Token inválido."}, status=403)
+        token_recebido = dados.get("token", "")
+        token_correto = os.getenv("BACKUP_ALERT_TOKEN", "")
 
-    cliente = dados.get("cliente", "Cliente não informado")
-    email_destino = dados.get("email_destino", "").strip()
-    status_backup = dados.get("status", "info")
-    banco = dados.get("banco", "")
-    arquivo = dados.get("arquivo", "")
-    tamanho = dados.get("tamanho", "")
-    nuvem = dados.get("nuvem", "")
-    etapa = dados.get("etapa", "")
-    erro = dados.get("erro", "")
-    mensagem_extra = dados.get("mensagem", "")
+        if not token_correto:
+            return JsonResponse({
+                "ok": False,
+                "erro": "BACKUP_ALERT_TOKEN nao configurado no servidor."
+            }, status=500)
 
-    if not email_destino:
-        return JsonResponse({"ok": False, "erro": "E-mail destino não informado."}, status=400)
+        if token_recebido != token_correto:
+            return JsonResponse({
+                "ok": False,
+                "erro": "Token invalido."
+            }, status=403)
 
-    agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        cliente = dados.get("cliente", "Cliente nao informado")
+        email_destino = dados.get("email_destino", "").strip()
+        status_backup = dados.get("status", "info")
+        banco = dados.get("banco", "")
+        arquivo = dados.get("arquivo", "")
+        tamanho = dados.get("tamanho", "")
+        nuvem = dados.get("nuvem", "")
+        etapa = dados.get("etapa", "")
+        erro = dados.get("erro", "")
+        mensagem_extra = dados.get("mensagem", "")
 
-    if status_backup == "sucesso":
-        assunto = f"✅ Backup concluído - {cliente}"
-        corpo = f"""Backup concluído com sucesso.
+        if not email_destino:
+            return JsonResponse({
+                "ok": False,
+                "erro": "E-mail destino nao informado."
+            }, status=400)
+
+        agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+        if status_backup == "sucesso":
+            assunto = f"Backup concluido - {cliente}"
+            corpo = f"""Backup concluido com sucesso.
 
 Cliente: {cliente}
 Data/hora: {agora}
@@ -56,9 +78,9 @@ Status: OK
 
 {mensagem_extra}
 """
-    else:
-        assunto = f"🚨 ERRO no backup - {cliente}"
-        corpo = f"""ERRO NO BACKUP.
+        else:
+            assunto = f"ERRO no backup - {cliente}"
+            corpo = f"""ERRO NO BACKUP.
 
 Cliente: {cliente}
 Data/hora: {agora}
@@ -66,34 +88,56 @@ Banco: {banco}
 Etapa: {etapa}
 Erro: {erro}
 
-Ação necessária: verificar o computador do cliente, internet, rclone ou banco Firebird.
+Acao necessaria: verificar o computador do cliente, internet, rclone ou banco Firebird.
 
 {mensagem_extra}
 """
 
-    destinos = [email_destino]
+        destinos = [email_destino]
 
-    copia = os.getenv("BACKUP_ALERT_CC", "").strip()
-    if copia:
-        destinos.append(copia)
+        copia = os.getenv("BACKUP_ALERT_CC", "").strip()
+        if copia and copia not in destinos:
+            destinos.append(copia)
 
-    try:
-        send_mail(
-            subject=assunto,
-            message=corpo,
-            from_email=os.getenv("DEFAULT_FROM_EMAIL"),
-            recipient_list=destinos,
-            fail_silently=False,
-        )
+        from_email = os.getenv("DEFAULT_FROM_EMAIL") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
 
-        return JsonResponse({
-            "ok": True,
-            "mensagem": "Alerta enviado por e-mail.",
-            "destinos": destinos,
-        })
+        if not from_email:
+            return JsonResponse({
+                "ok": False,
+                "erro": "DEFAULT_FROM_EMAIL nao configurado."
+            }, status=500)
 
-    except Exception as erro_envio:
+        try:
+            send_mail(
+                subject=assunto,
+                message=corpo,
+                from_email=from_email,
+                recipient_list=destinos,
+                fail_silently=False,
+            )
+
+            return JsonResponse({
+                "ok": True,
+                "mensagem": "Alerta enviado por e-mail.",
+                "destinos": destinos,
+                "from_email": from_email
+            })
+
+        except Exception as erro_email:
+            return JsonResponse({
+                "ok": False,
+                "erro": "Falha ao enviar e-mail.",
+                "detalhe": str(erro_email),
+                "email_host": os.getenv("EMAIL_HOST", ""),
+                "email_port": os.getenv("EMAIL_PORT", ""),
+                "email_user": os.getenv("EMAIL_HOST_USER", ""),
+                "from_email": from_email
+            }, status=500)
+
+    except Exception as erro_geral:
         return JsonResponse({
             "ok": False,
-            "erro": str(erro_envio),
+            "erro": "Erro geral na API alerta-backup.",
+            "detalhe": str(erro_geral),
+            "traceback": traceback.format_exc()
         }, status=500)
