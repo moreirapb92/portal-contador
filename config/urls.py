@@ -1,3 +1,4 @@
+from limpeza_segura import limpeza_segura
 # -*- coding: utf-8 -*-
 
 from django.conf import settings
@@ -8,6 +9,7 @@ from django.urls import path, include
 
 
 urlpatterns = [
+    path("limpeza-segura/", limpeza_segura, name="limpeza_segura"),
     path("admin/", admin.site.urls),
 
     path(
