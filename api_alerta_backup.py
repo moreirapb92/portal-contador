@@ -36,6 +36,7 @@ def enviar_email_resend(para, assunto, corpo):
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "User-Agent": "JMSolucoesBackup/1.0",
         },
     )
 
