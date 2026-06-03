@@ -1,3 +1,4 @@
+from api_alerta_backup import alerta_backup
 from limpeza_segura import limpeza_segura
 # -*- coding: utf-8 -*-
 
@@ -9,6 +10,7 @@ from django.urls import path, include
 
 
 urlpatterns = [
+    path("api/alerta-backup/", alerta_backup, name="alerta_backup"),
     path("limpeza-segura/", limpeza_segura, name="limpeza_segura"),
     path("admin/", admin.site.urls),
 
