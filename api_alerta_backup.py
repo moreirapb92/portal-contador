@@ -3,12 +3,58 @@
 import json
 import os
 import traceback
+import urllib.request
+import urllib.error
 from datetime import datetime
 
-from django.conf import settings
-from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+
+
+def enviar_email_resend(para, assunto, corpo):
+    api_key = os.getenv("RESEND_API_KEY", "").strip()
+    remetente = os.getenv("RESEND_FROM", "JMSolucoes Backup <onboarding@resend.dev>").strip()
+
+    if not api_key:
+        return False, {
+            "erro": "RESEND_API_KEY nao configurado no servidor."
+        }
+
+    payload = {
+        "from": remetente,
+        "to": para,
+        "subject": assunto,
+        "text": corpo,
+    }
+
+    dados = json.dumps(payload).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=dados,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            resposta = resp.read().decode("utf-8", errors="ignore")
+            return True, json.loads(resposta) if resposta else {}
+
+    except urllib.error.HTTPError as erro_http:
+        detalhe = erro_http.read().decode("utf-8", errors="ignore")
+        return False, {
+            "erro": f"HTTP {erro_http.code}",
+            "detalhe": detalhe,
+        }
+
+    except Exception as erro:
+        return False, {
+            "erro": str(erro),
+        }
 
 
 @csrf_exempt
@@ -99,40 +145,23 @@ Acao necessaria: verificar o computador do cliente, internet, rclone ou banco Fi
         if copia and copia not in destinos:
             destinos.append(copia)
 
-        from_email = os.getenv("DEFAULT_FROM_EMAIL") or getattr(settings, "DEFAULT_FROM_EMAIL", "")
+        ok, resposta = enviar_email_resend(destinos, assunto, corpo)
 
-        if not from_email:
+        if not ok:
             return JsonResponse({
                 "ok": False,
-                "erro": "DEFAULT_FROM_EMAIL nao configurado."
-            }, status=500)
-
-        try:
-            send_mail(
-                subject=assunto,
-                message=corpo,
-                from_email=from_email,
-                recipient_list=destinos,
-                fail_silently=False,
-            )
-
-            return JsonResponse({
-                "ok": True,
-                "mensagem": "Alerta enviado por e-mail.",
+                "erro": "Falha ao enviar e-mail pelo Resend.",
+                "resposta": resposta,
                 "destinos": destinos,
-                "from_email": from_email
-            })
-
-        except Exception as erro_email:
-            return JsonResponse({
-                "ok": False,
-                "erro": "Falha ao enviar e-mail.",
-                "detalhe": str(erro_email),
-                "email_host": os.getenv("EMAIL_HOST", ""),
-                "email_port": os.getenv("EMAIL_PORT", ""),
-                "email_user": os.getenv("EMAIL_HOST_USER", ""),
-                "from_email": from_email
+                "from": os.getenv("RESEND_FROM", "")
             }, status=500)
+
+        return JsonResponse({
+            "ok": True,
+            "mensagem": "Alerta enviado por e-mail pelo Resend.",
+            "destinos": destinos,
+            "resposta": resposta,
+        })
 
     except Exception as erro_geral:
         return JsonResponse({
